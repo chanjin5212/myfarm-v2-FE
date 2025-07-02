@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
 :root {
+  /* 감자색 기반 컬러 팔레트 */
+  --potato-50: #fef9f3;
+  --potato-100: #fef2e2;
+  --potato-200: #fde1c8;
+  --potato-300: #fbc8a3;
+  --potato-400: #f7a76c;
+  --potato-500: #f38744;
+  --potato-600: #e46f2a;
+  --potato-700: #bc561f;
+  --potato-800: #964620;
+  --potato-900: #7a3b1d;
+  
+  /* 농업 관련 보조 색상들 */
+  --leaf-green: #22c55e;
+  --earth-brown: #8b4513;
+  --sunny-yellow: #facc15;
+  --sky-blue: #38bdf8;
+  
+  /* 시멘틱 컬러 */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1f2937;
+  --primary: var(--potato-600);
+  --primary-hover: var(--potato-700);
+  --secondary: var(--leaf-green);
+  
+  /* 상태 색상 */
+  --success: var(--leaf-green);
+  --warning: var(--sunny-yellow);
+  --error: #ef4444;
+  --info: var(--sky-blue);
+  
+  /* 그레이 스케일 */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  
+  /* 공통 스타일 변수 */
+  --border-radius: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  
+  /* 감자색 팔레트 */
+  --color-potato-50: var(--potato-50);
+  --color-potato-100: var(--potato-100);
+  --color-potato-200: var(--potato-200);
+  --color-potato-300: var(--potato-300);
+  --color-potato-400: var(--potato-400);
+  --color-potato-500: var(--potato-500);
+  --color-potato-600: var(--potato-600);
+  --color-potato-700: var(--potato-700);
+  --color-potato-800: var(--potato-800);
+  --color-potato-900: var(--potato-900);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1f2937;
+    --foreground: #f9fafb;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Noto Sans KR', Arial, Helvetica, sans-serif;
+}
+
+/* 공통 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--potato-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--potato-400);
 }

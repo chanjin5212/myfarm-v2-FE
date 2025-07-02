@@ -1,103 +1,154 @@
-import Image from "next/image";
+'use client';
+
+import React from 'react';
+import { 
+  Button, 
+  ProductCard, 
+  InfoCard, 
+  SearchInput 
+} from '@/components/ui';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const featuredProducts = [
+    {
+      id: 1,
+      title: "고성 감자",
+      price: 15000,
+      originalPrice: 18000,
+      description: "강원 고성의 청정한 고랭지에서 자란 프리미엄 감자입니다. 당도가 높고 식감이 부드러워요.",
+      badge: "인기상품",
+      image: undefined
+    },
+    {
+      id: 2,
+      title: "강원 옥수수",
+      price: 12000,
+      description: "달콤하고 촉촉한 강원도 햇 옥수수입니다. 자연 그대로의 단맛을 느껴보세요.",
+      badge: "신상품",
+      image: undefined
+    },
+    {
+      id: 3,
+      title: "유기농 배추",
+      price: 8000,
+      originalPrice: 10000,
+      description: "무농약으로 재배한 싱싱한 배추입니다. 김치 담그기에 최적화된 품질입니다.",
+      badge: "유기농",
+      image: undefined
+    }
+  ];
+
+  const benefits = [
+    {
+      icon: <span className="text-2xl">🚚</span>,
+      title: "신선배송",
+      content: "수확 후 24시간 내 전국 직배송으로 가장 신선한 상태로 받아보세요."
+    },
+    {
+      icon: <span className="text-2xl">🏔️</span>,
+      title: "강원도 직송",
+      content: "청정 강원도에서 직접 재배한 고품질 농산물만을 엄선해서 보내드립니다."
+    },
+    {
+      icon: <span className="text-2xl">💰</span>,
+      title: "합리적 가격",
+      content: "중간 유통업체 없이 농장에서 직접 판매하여 더욱 합리적인 가격으로 제공합니다."
+    },
+    {
+      icon: <span className="text-2xl">🌱</span>,
+      title: "안전한 농산물",
+      content: "농약 사용을 최소화하고 친환경 농법으로 키운 안전한 농산물입니다."
+    }
+  ];
+
+  return (
+    <div>
+
+      {/* 메인 히어로 섹션 */}
+      <section className="py-12 md:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            강원도에서 온<br />
+            <span className="text-potato-500">진짜 농산물</span>
+          </h1>
+          <p className="text-lg md:text-xl text-gray-600 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
+            청정 강원도 고성에서 정성스럽게 키운 신선한 농산물을 농장에서 직접 보내드립니다.<br />
+            중간 유통 없이 가장 신선하고 합리적인 가격으로 만나보세요.
+          </p>
+          
+          <div className="max-w-md mx-auto mb-8">
+            <SearchInput
+              placeholder="원하는 농산물을 검색하세요..."
+              onSearch={(value) => alert(`"${value}" 검색 기능은 준비 중입니다.`)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="text-lg px-8 py-4">
+              상품 둘러보기
+            </Button>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-4">
+              농장 이야기
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* 추천 상품 섹션 */}
+      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">인기 상품</h2>
+            <p className="text-gray-600 text-lg">고객들이 가장 많이 찾는 강원도 농산물</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {featuredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                title={product.title}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                description={product.description}
+                badge={product.badge}
+                image={product.image}
+                onAddToCart={() => alert(`${product.title}이(가) 장바구니에 추가되었습니다!`)}
+                onViewDetails={() => alert(`${product.title} 상세페이지는 준비 중입니다.`)}
+              />
+            ))}
+          </div>
+          
+          <div className="text-center mt-8 md:mt-12">
+            <Button variant="outline" size="lg">
+              모든 상품 보기 →
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* 서비스 특장점 섹션 */}
+      <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">강원찐농부의 약속</h2>
+            <p className="text-gray-600 text-lg">고객 만족을 위한 우리의 특별한 서비스</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {benefits.map((benefit, index) => (
+              <InfoCard
+                key={index}
+                icon={benefit.icon}
+                title={benefit.title}
+                content={benefit.content}
+                className="text-center h-full"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }
