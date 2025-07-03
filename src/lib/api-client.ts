@@ -7,7 +7,7 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 // API 베이스 URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
 
 // Axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
@@ -16,19 +16,12 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, 
 });
 
-// 요청 인터셉터 - 인증 토큰 자동 추가
+// 요청 인터셉터 - 세션 기반이므로 토큰 추가 불필요
 apiClient.interceptors.request.use(
   (config) => {
-    // localStorage에서 토큰 가져오기 (클라이언트 사이드에서만)
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    
     console.log(`🚀 API 요청: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
@@ -38,7 +31,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// 응답 인터셉터 - 에러 처리 및 토큰 갱신
+// 응답 인터셉터 - 에러 처리 (세션 기반)
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     console.log(`✅ API 응답: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
@@ -47,32 +40,15 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as ExtendedAxiosRequestConfig;
     
-    // 401 에러 처리 - 토큰 갱신 또는 로그아웃
+    // 401 에러 처리 - 세션 만료 시 로그인 페이지로 리다이렉트
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          // 토큰 갱신 API 호출
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
-          
-          const { accessToken } = response.data.data;
-          localStorage.setItem('accessToken', accessToken);
-          
-          // 원래 요청 재시도
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
-        }
-      } catch (refreshError) {
-        // 토큰 갱신 실패 시 로그아웃 처리
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+      // 세션 기반에서는 토큰 갱신 없이 바로 로그인 페이지로 리다이렉트
+      if (typeof window !== 'undefined') {
         window.location.href = '/login';
-        return Promise.reject(refreshError);
       }
+      return Promise.reject(error);
     }
     
     // 에러 메시지 표준화
@@ -89,35 +65,30 @@ apiClient.interceptors.response.use(
   }
 );
 
-// 토큰 관리 유틸리티 함수들
-export const tokenUtils = {
-  // 토큰 저장
-  setTokens: (accessToken: string, refreshToken: string) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+// 세션 관리 유틸리티 함수들
+export const sessionUtils = {
+  // 로그인 상태 확인 - 서버에 세션 확인 요청
+  checkSession: async (): Promise<boolean> => {
+    try {
+      const response = await apiClient.get('/users/v1/session');
+      return response.status === 200;
+    } catch (error) {
+      return false;
     }
   },
   
-  // 토큰 가져오기
-  getAccessToken: (): string | null => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('accessToken');
+  // 로그아웃 - 서버에 로그아웃 요청
+  logout: async (): Promise<void> => {
+    try {
+      await apiClient.post('/users/v1/logout');
+    } catch (error) {
+      console.error('로그아웃 에러:', error);
+    } finally {
+      // 로그아웃 후 로그인 페이지로 리다이렉트
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
-    return null;
-  },
-  
-  // 토큰 삭제
-  clearTokens: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-    }
-  },
-  
-  // 로그인 상태 확인
-  isAuthenticated: (): boolean => {
-    return !!tokenUtils.getAccessToken();
   },
 };
 
