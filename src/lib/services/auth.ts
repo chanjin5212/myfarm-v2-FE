@@ -3,6 +3,7 @@ import {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
+  RegisterResponse,
   User,
   ApiResponse,
 } from '@/types/api';
@@ -26,11 +27,8 @@ export const authService = {
   /**
    * 회원가입
    */
-  register: async (userData: RegisterRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<ApiResponse<AuthResponse>>('/users/v1/register', userData);
-    
-    // 세션 기반이므로 토큰 저장 불필요
-    // 자동 로그인은 세션으로 처리됨
+  register: async (userData: RegisterRequest): Promise<RegisterResponse> => {
+    const response = await apiClient.post<ApiResponse<RegisterResponse>>('/users/v1/register', userData);
     
     return response.data.data;
   },

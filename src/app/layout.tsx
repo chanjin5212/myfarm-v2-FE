@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Header, Footer } from "@/components/ui";
+import { Header, Footer, ToastProvider } from "@/components/ui";
 import QueryProvider from "@/components/providers/QueryProvider";
 import "./globals.css";
 
@@ -30,11 +30,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-potato-50 to-white`}
       >
         <QueryProvider>
-          <Header />
-          <main>
-            {children}
-          </main>
-          <Footer />
+          <ToastProvider>
+            <Header />
+            <main>
+              {children}
+            </main>
+            <Footer />
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>

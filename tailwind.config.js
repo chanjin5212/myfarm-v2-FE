@@ -42,11 +42,17 @@ module.exports = {
         'fade-in': 'fadeIn 0.3s ease-out',
         'spin': 'spin 1s linear infinite',
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'slide-in-down': 'slideInDown 0.4s ease-out',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideInDown: {
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '50%': { transform: 'translateY(10px)', opacity: '0.8' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
       },
       boxShadow: {

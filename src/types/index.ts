@@ -13,5 +13,8 @@ export * from './cart';
 // 주문 관련 타입
 export * from './order';
 
+// 배송지 관련 타입
+export * from './shipping';
+
 // 검증 관련 타입
 export * from './validation'; 

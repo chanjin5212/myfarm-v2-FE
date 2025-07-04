@@ -5,17 +5,21 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/Toast';
 import { validationService } from '@/lib/services/validation';
 import { authService } from '@/lib/services/auth';
+import { shippingService } from '@/lib/services/shipping';
 import { validatePassword, validatePasswordConfirm, getPasswordStrength } from '@/utils/validation';
 
 export default function RegisterPage() {
+  const { success, error: showError, info } = useToast();
   const [formData, setFormData] = useState({
     loginId: '',
     email: '',
     password: '',
     confirmPassword: '',
     name: '',
+    nickname: '',
     phone: '',
     address: '',
     detailAddress: '',
@@ -101,7 +105,7 @@ export default function RegisterPage() {
 
   const handleSendEmailCode = async () => {
     if (!formData.email) {
-      alert('이메일을 입력해주세요.');
+      showError('이메일을 입력해주세요.');
       return;
     }
 
@@ -110,10 +114,10 @@ export default function RegisterPage() {
     try {
       const response = await validationService.sendEmailVerificationCode(formData.email);
       setShowEmailVerification(true);
-      alert(response.message);
+      success(response.message);
     } catch (error) {
       console.error('이메일 인증 코드 발송 에러:', error);
-      alert('인증 코드 발송에 실패했습니다.');
+      showError('인증 코드 발송에 실패했습니다.');
     } finally {
       setEmailSending(false);
     }
@@ -121,7 +125,7 @@ export default function RegisterPage() {
 
   const handleVerifyEmail = async () => {
     if (!emailCode) {
-      alert('인증 코드를 입력해주세요.');
+      showError('인증 코드를 입력해주세요.');
       return;
     }
 
@@ -132,22 +136,108 @@ export default function RegisterPage() {
       
       if (response.verified) {
         setEmailVerified(true);
-        alert(response.message);
+        success(response.message);
       } else {
-        alert('인증에 실패했습니다. 인증 코드를 확인해주세요.');
+        showError('인증에 실패했습니다. 인증 코드를 확인해주세요.');
       }
     } catch (error) {
       console.error('이메일 인증 에러:', error);
-      alert('인증 코드가 일치하지 않습니다.');
+      showError('인증 코드가 일치하지 않습니다.');
     } finally {
       setEmailVerifying(false);
     }
   };
 
   const handleFindAddress = () => {
-    // TODO: 주소 찾기 API 연동 (다음 주소 API 등)
-    console.log('주소 찾기');
-    alert('주소 찾기 기능을 연동해주세요.');
+    // 다음주소 API 스크립트 동적 로드
+    const script = document.createElement('script');
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.onload = () => {
+      // 스크립트 로드 완료 후 주소 검색 팝업 열기
+      new (window as any).daum.Postcode({
+        oncomplete: function(data: any) {
+          // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분
+          
+          // 각 주소의 노출 규칙에 따라 주소를 조합한다
+          // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다
+          let addr = ''; // 주소 변수
+          let extraAddr = ''; // 참고항목 변수
+
+          // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다
+          if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+            addr = data.roadAddress;
+          } else { // 사용자가 지번 주소를 선택했을 경우(J)
+            addr = data.jibunAddress;
+          }
+
+          // 사용자가 선택한 주소가 도로명 타입일때 참고항목을 조합한다
+          if (data.userSelectedType === 'R') {
+            // 법정동명이 있을 경우 추가한다. (법정리는 제외)
+            // 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다
+            if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+              extraAddr += data.bname;
+            }
+            // 건물명이 있고, 공동주택일 경우 추가한다
+            if (data.buildingName !== '' && data.apartment === 'Y') {
+              extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+            }
+            // 표시할 참고항목이 있을 경우, 괄호까지 추가한 최종 문자열을 만든다
+            if (extraAddr !== '') {
+              extraAddr = ' (' + extraAddr + ')';
+            }
+          }
+
+          // 우편번호와 주소 정보를 해당 필드에 넣는다
+          setFormData(prev => ({
+            ...prev,
+            postalCode: data.zonecode,
+            address: addr + extraAddr
+          }));
+
+          // 커서를 상세주소 필드로 이동한다
+          document.getElementById('detailAddress')?.focus();
+        }
+      }).open();
+    };
+    
+    // 스크립트가 이미 로드되었는지 확인
+    if (!document.querySelector('script[src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"]')) {
+      document.head.appendChild(script);
+    } else {
+      // 이미 로드되어 있으면 바로 팝업 열기
+      new (window as any).daum.Postcode({
+        oncomplete: function(data: any) {
+          let addr = '';
+          let extraAddr = '';
+
+          if (data.userSelectedType === 'R') {
+            addr = data.roadAddress;
+          } else {
+            addr = data.jibunAddress;
+          }
+
+          if (data.userSelectedType === 'R') {
+            if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+              extraAddr += data.bname;
+            }
+            if (data.buildingName !== '' && data.apartment === 'Y') {
+              extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+            }
+            if (extraAddr !== '') {
+              extraAddr = ' (' + extraAddr + ')';
+            }
+          }
+
+          setFormData(prev => ({
+            ...prev,
+            postalCode: data.zonecode,
+            address: addr + extraAddr
+          }));
+
+          document.getElementById('detailAddress')?.focus();
+        }
+      }).open();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -156,54 +246,76 @@ export default function RegisterPage() {
 
     // 유효성 검사
     if (loginIdStatus !== 'available') {
-      alert('로그인 ID 중복 확인을 완료해주세요.');
+      showError('로그인 ID 중복 확인을 완료해주세요.');
       setIsLoading(false);
       return;
     }
 
     if (!emailVerified) {
-      alert('이메일 인증을 완료해주세요.');
+      showError('이메일 인증을 완료해주세요.');
       setIsLoading(false);
       return;
     }
 
     if (!passwordValidation.isValid) {
-      alert('비밀번호 조건을 확인해주세요.');
+      showError('비밀번호 조건을 확인해주세요.');
       setIsLoading(false);
       return;
     }
 
     if (!passwordConfirmValidation.isValid) {
-      alert('비밀번호 확인을 확인해주세요.');
+      showError('비밀번호 확인을 확인해주세요.');
       setIsLoading(false);
       return;
     }
 
     if (!formData.agreeTerms || !formData.agreePrivacy) {
-      alert('필수 약관에 동의해주세요.');
+      showError('필수 약관에 동의해주세요.');
       setIsLoading(false);
       return;
     }
 
     try {
-      await authService.register({
-        loginId: formData.loginId,
+      const response = await authService.register({
         email: formData.email,
+        login_id: formData.loginId,
         password: formData.password,
         name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-        detailAddress: formData.detailAddress,
-        postalCode: formData.postalCode,
+        nickname: formData.nickname || undefined,
+        phone_number: formData.phone || undefined,
+        postcode: formData.postalCode || undefined,
+        address: formData.address || undefined,
+        detail_address: formData.detailAddress || undefined,
+        terms_agreed: formData.agreeTerms && formData.agreePrivacy,
+        marketing_agreed: formData.agreeMarketing,
       });
       
-      alert('회원가입이 완료되었습니다!');
+      // 주소 정보가 있으면 추가 기본 배송지로 저장 (회원가입 시 이미 주소는 User 테이블에 저장됨)
+      if (formData.address && formData.name) {
+        try {
+          await shippingService.createShippingAddress({
+            recipient_name: formData.name,
+            phone: formData.phone || '',
+            address: formData.address,
+            detail_address: formData.detailAddress || undefined,
+            is_default: true,
+            memo: '회원가입 시 등록된 기본 배송지'
+          });
+        } catch (shippingError) {
+          console.error('기본 배송지 저장 에러:', shippingError);
+          // 배송지 저장 실패는 회원가입 실패로 처리하지 않음
+        }
+      }
+      
+      success('회원가입이 완료되었습니다!');
       // 회원가입 성공 시 로그인 페이지로 이동
-      window.location.href = '/login';
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
       
     } catch (error) {
       console.error('회원가입 에러:', error);
-      alert('회원가입에 실패했습니다.');
+      showError('회원가입에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -439,6 +551,21 @@ export default function RegisterPage() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="이름을 입력하세요"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
+                닉네임 <span className="text-gray-400">(선택)</span>
+              </label>
+              <Input
+                id="nickname"
+                name="nickname"
+                type="text"
+                value={formData.nickname}
+                onChange={handleChange}
+                placeholder="닉네임을 입력하세요 (선택사항)"
                 className="mt-1"
               />
             </div>

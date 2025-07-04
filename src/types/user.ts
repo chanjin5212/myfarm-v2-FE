@@ -21,17 +21,25 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  loginId: string;
   email: string;
+  login_id: string;
   password: string;
   name: string;
-  phone?: string;
+  nickname?: string;
+  phone_number?: string;
+  postcode?: string;
   address?: string;
-  detailAddress?: string;
-  postalCode?: string;
+  detail_address?: string;
+  terms_agreed: boolean;
+  marketing_agreed: boolean;
 }
 
 export interface AuthResponse {
   user: User;
   message: string;
+}
+
+export interface RegisterResponse {
+  email: string;
+  login_id: string;
 } 
