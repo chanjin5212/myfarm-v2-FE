@@ -7,6 +7,7 @@ import {
   SendVerificationResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
+  VerificationType,
 } from '@/types/api';
 
 /**
@@ -46,8 +47,8 @@ export const validationService = {
   /**
    * 이메일 인증 코드 발송
    */
-  sendEmailVerificationCode: async (email: string): Promise<SendVerificationResponse> => {
-    const request: SendVerificationRequest = { email };
+  sendEmailVerificationCode: async (email: string, verificationType: VerificationType = VerificationType.REGISTRATION): Promise<SendVerificationResponse> => {
+    const request: SendVerificationRequest = { email, verification_type: verificationType };
     const response = await apiClient.post<SendVerificationResponse>('/email-verifications/v1/send', request);
     return response.data;
   },

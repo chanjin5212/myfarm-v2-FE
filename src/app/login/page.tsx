@@ -1,18 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/Toast';
 import { authService } from '@/lib/services/auth';
 
 export default function LoginPage() {
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     loginId: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // 이미 로그인된 상태인지 확인
+  useEffect(() => {
+    
+    const checkAuthStatus = async () => {
+      try {
+        await authService.getCurrentUser();
+        // 로그인된 상태라면 메인화면으로 리다이렉트
+        window.location.href = '/';
+      } catch (error) {        
+        // 로그인되지 않은 상태 (정상)
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,20 +48,32 @@ export default function LoginPage() {
     
     try {
       await authService.login({
-        loginId: formData.loginId,
+        login_id: formData.loginId,
         password: formData.password,
       });
       
-      // 로그인 성공 시 메인 페이지로 이동
+      // 로그인 성공 시 즉시 메인화면으로 이동
       window.location.href = '/';
       
     } catch (error) {
       console.error('로그인 에러:', error);
-      alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+      showError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // 인증 상태 확인 중이면 로딩 표시
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로그인 상태 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -54,7 +86,7 @@ export default function LoginPage() {
             아직 계정이 없으신가요?{' '}
             <Link 
               href="/register" 
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="text-gray-900 hover:text-gray-700 underline"
             >
               회원가입하기
             </Link>
@@ -95,23 +127,19 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  로그인 상태 유지
-                </label>
+            <div className="flex items-center justify-center space-x-6">
+              <div className="text-sm">
+                <Link 
+                  href="/forgot-id" 
+                  className="text-gray-900 hover:text-gray-700 underline"
+                >
+                  아이디 찾기
+                </Link>
               </div>
-
               <div className="text-sm">
                 <Link 
                   href="/forgot-password" 
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-gray-900 hover:text-gray-700 underline"
                 >
                   비밀번호 찾기
                 </Link>

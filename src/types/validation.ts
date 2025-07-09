@@ -15,6 +15,13 @@ export type DuplicateCheckType = 'loginId' | 'email' | 'phone';
 // 이메일 인증 API 타입
 export interface SendVerificationRequest {
   email: string;
+  verification_type: VerificationType;
+}
+
+export enum VerificationType {
+  REGISTRATION = 'REGISTRATION',
+  FIND_ID = 'FIND_ID',
+  FIND_PASSWORD = 'FIND_PASSWORD',
 }
 
 export interface SendVerificationResponse {

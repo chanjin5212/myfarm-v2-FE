@@ -10,6 +10,7 @@ import { validationService } from '@/lib/services/validation';
 import { authService } from '@/lib/services/auth';
 import { shippingService } from '@/lib/services/shipping';
 import { validatePassword, validatePasswordConfirm, getPasswordStrength } from '@/utils/validation';
+import { VerificationType } from '@/types/api';
 
 export default function RegisterPage() {
   const { success, error: showError, info } = useToast();
@@ -112,7 +113,7 @@ export default function RegisterPage() {
     setEmailSending(true);
     
     try {
-      const response = await validationService.sendEmailVerificationCode(formData.email);
+      const response = await validationService.sendEmailVerificationCode(formData.email, VerificationType.REGISTRATION);
       setShowEmailVerification(true);
       success(response.message);
     } catch (error) {
@@ -290,23 +291,6 @@ export default function RegisterPage() {
         marketing_agreed: formData.agreeMarketing,
       });
       
-      // 주소 정보가 있으면 추가 기본 배송지로 저장 (회원가입 시 이미 주소는 User 테이블에 저장됨)
-      if (formData.address && formData.name) {
-        try {
-          await shippingService.createShippingAddress({
-            recipient_name: formData.name,
-            phone: formData.phone || '',
-            address: formData.address,
-            detail_address: formData.detailAddress || undefined,
-            is_default: true,
-            memo: '회원가입 시 등록된 기본 배송지'
-          });
-        } catch (shippingError) {
-          console.error('기본 배송지 저장 에러:', shippingError);
-          // 배송지 저장 실패는 회원가입 실패로 처리하지 않음
-        }
-      }
-      
       success('회원가입이 완료되었습니다!');
       // 회원가입 성공 시 로그인 페이지로 이동
       setTimeout(() => {
@@ -332,7 +316,7 @@ export default function RegisterPage() {
             이미 계정이 있으신가요?{' '}
             <Link 
               href="/login" 
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="text-gray-900 hover:text-gray-700 underline"
             >
               로그인하기
             </Link>

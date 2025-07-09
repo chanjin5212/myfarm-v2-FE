@@ -22,7 +22,6 @@ const apiClient: AxiosInstance = axios.create({
 // 요청 인터셉터 - 세션 기반이므로 토큰 추가 불필요
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`🚀 API 요청: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -34,7 +33,6 @@ apiClient.interceptors.request.use(
 // 응답 인터셉터 - 에러 처리 (세션 기반)
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log(`✅ API 응답: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
     return response;
   },
   async (error: AxiosError) => {
@@ -44,9 +42,14 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      // 세션 기반에서는 토큰 갱신 없이 바로 로그인 페이지로 리다이렉트
+      // 현재 페이지가 로그인 관련 페이지가 아닐 때만 리다이렉트
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const currentPath = window.location.pathname;
+        const authPages = ['/login', '/register', '/forgot-id', '/forgot-password'];
+        
+        if (!authPages.includes(currentPath)) {
+          window.location.href = '/login';
+        }
       }
       return Promise.reject(error);
     }
@@ -84,9 +87,12 @@ export const sessionUtils = {
     } catch (error) {
       console.error('로그아웃 에러:', error);
     } finally {
-      // 로그아웃 후 로그인 페이지로 리다이렉트
+      // 로그아웃 후 로그인 페이지로 리다이렉트 (현재 로그인 페이지가 아닐 때만)
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
   },
