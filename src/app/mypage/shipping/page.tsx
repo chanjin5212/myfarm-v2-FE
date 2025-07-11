@@ -9,22 +9,7 @@ import { authService } from '@/lib/services/auth';
 
 export default function ShippingPage() {
   const { success, error: showError, info } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // 인증 상태 확인
-    const checkAuth = async () => {
-      try {
-        await authService.getCurrentUser();
-        setIsLoading(false);
-      } catch (error) {
-        console.error('인증 확인 에러:', error);
-        window.location.href = '/login';
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAddAddress = () => {
     info('배송지 추가 기능은 준비 중입니다.');

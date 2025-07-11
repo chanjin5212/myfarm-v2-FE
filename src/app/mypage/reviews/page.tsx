@@ -9,23 +9,8 @@ import { authService } from '@/lib/services/auth';
 
 export default function ReviewsPage() {
   const { success, error: showError, info } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'written' | 'pending'>('written');
-
-  useEffect(() => {
-    // 인증 상태 확인
-    const checkAuth = async () => {
-      try {
-        await authService.getCurrentUser();
-        setIsLoading(false);
-      } catch (error) {
-        console.error('인증 확인 에러:', error);
-        window.location.href = '/login';
-      }
-    };
-
-    checkAuth();
-  }, []);
 
   const handleEditReview = () => {
     info('리뷰 수정 기능은 준비 중입니다.');

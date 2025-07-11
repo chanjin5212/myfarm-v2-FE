@@ -314,48 +314,41 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* 계정 정보 */}
+            {/* 마케팅 정보 및 계정 설정 */}
             <div className="pb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">계정 정보</h2>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">계정 설정</h2>
               
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                {/* 마케팅 정보 수신 토글 */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">가입일</p>
-                    <p className="text-sm text-gray-600">
-                      {new Date(user.created_at).toLocaleDateString('ko-KR')}
-                    </p>
+                    <h3 className="text-sm font-medium text-gray-900">마케팅 정보 수신</h3>
+                    <p className="text-sm text-gray-600">새로운 상품 소식과 할인 정보를 이메일로 받아보세요</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">마지막 로그인</p>
-                    <p className="text-sm text-gray-600">
-                      {user.last_login ? new Date(user.last_login).toLocaleString('ko-KR') : '정보 없음'}
-                    </p>
-                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={user.marketing_agreed}
+                      onChange={() => info('마케팅 정보 수신 설정 변경 기능은 준비 중입니다.')}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 비밀번호 변경 */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">이용약관 동의</p>
-                    <p className="text-sm text-gray-600">
-                      {user.terms_agreed ? '동의함' : '동의하지 않음'}
-                    </p>
+                    <h3 className="text-sm font-medium text-gray-900">비밀번호 변경</h3>
+                    <p className="text-sm text-gray-600">계정 보안을 위해 주기적으로 비밀번호를 변경해주세요</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">마케팅 정보 수신</p>
-                    <p className="text-sm text-gray-600">
-                      {user.marketing_agreed ? '동의함' : '동의하지 않음'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => info('비밀번호 변경 기능은 준비 중입니다.')}
                   >
-                    비밀번호 변경
+                    변경하기
                   </Button>
                 </div>
               </div>

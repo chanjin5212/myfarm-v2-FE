@@ -63,8 +63,13 @@ export interface ProductSummary {
   price: number;
   thumbnailUrl: string | null;
   orderCount: number;
+  reviewCount: number;
+  averageRating: number;
   createdAt: string; // LocalDateTime -> string
 }
+
+// 상품 정렬 옵션 (백엔드 스펙에 맞춤)
+export type ProductSortOption = 'latest' | 'priceDesc' | 'priceAsc';
 
 // 상품 목록 조회 요청 (ListProduct.Request)
 export interface ProductListRequest {
@@ -72,7 +77,7 @@ export interface ProductListRequest {
   keyword?: string;
   minPrice?: number;
   maxPrice?: number;
-  sortBy?: string; // 'latest', 'price', 'orderCount', etc.
+  sortBy?: ProductSortOption; // 백엔드 스펙: 'latest', 'popular', 'priceDesc', 'priceAsc'
   page?: number;
   size?: number;
 }

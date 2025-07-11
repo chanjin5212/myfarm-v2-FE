@@ -9,23 +9,8 @@ import { authService } from '@/lib/services/auth';
 
 export default function OrdersPage() {
   const { success, error: showError, info } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>('all');
-
-  useEffect(() => {
-    // 인증 상태 확인
-    const checkAuth = async () => {
-      try {
-        await authService.getCurrentUser();
-        setIsLoading(false);
-      } catch (error) {
-        console.error('인증 확인 에러:', error);
-        window.location.href = '/login';
-      }
-    };
-
-    checkAuth();
-  }, []);
 
   const handleViewDetail = () => {
     info('주문 상세보기 기능은 준비 중입니다.');

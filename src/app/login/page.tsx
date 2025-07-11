@@ -15,23 +15,14 @@ export default function LoginPage() {
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // 이미 로그인된 상태인지 확인
+  // 이미 로그인된 상태인지 간단하게 확인
   useEffect(() => {
-    
-    const checkAuthStatus = async () => {
-      try {
-        await authService.getCurrentUser();
-        // 로그인된 상태라면 메인화면으로 리다이렉트
-        window.location.href = '/';
-      } catch (error) {        
-        // 로그인되지 않은 상태 (정상)
-        setIsCheckingAuth(false);
-      }
-    };
-
-    checkAuthStatus();
+    // localStorage로 간단한 로그인 상태 확인
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (isLoggedIn) {
+      window.location.href = '/';
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +43,20 @@ export default function LoginPage() {
         password: formData.password,
       });
       
+      // 로그인 상태 저장
+      localStorage.setItem('isLoggedIn', 'true');
+      
+      // 사용자 정보 조회 후 저장
+      try {
+        const userData = await authService.getCurrentUser({ skipAuthRedirect: true });
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
+        // 헤더에 사용자 정보 전달 (이벤트 발생)
+        window.dispatchEvent(new CustomEvent('userLogin', { detail: userData }));
+      } catch (error) {
+        console.warn('사용자 정보 조회 실패:', error);
+      }
+      
       // 로그인 성공 시 즉시 메인화면으로 이동
       window.location.href = '/';
       
@@ -62,18 +67,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-  // 인증 상태 확인 중이면 로딩 표시
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로그인 상태 확인 중...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

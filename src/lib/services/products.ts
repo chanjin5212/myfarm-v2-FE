@@ -5,6 +5,7 @@ import {
   ProductListRequest,
   ProductListResponse,
   ProductDetailResponse,
+  ProductSortOption,
 } from '@/types/product';
 
 /**
@@ -41,7 +42,17 @@ export const productService = {
     }
     
     const totalCount = data?.totalCount || data?.total_count || data?.total || 0;
-    const products = data?.products || data?.items || [];
+    const rawProducts = data?.products || data?.items || [];
+    
+    // snake_case를 camelCase로 변환
+    const products = rawProducts.map((product: any) => ({
+      ...product,
+      reviewCount: product.reviewCount || product.review_count || 0,
+      averageRating: product.averageRating || product.average_rating || 0,
+      orderCount: product.orderCount || product.order_count || 0,
+      thumbnailUrl: product.thumbnailUrl || product.thumbnail_url || null,
+      createdAt: product.createdAt || product.created_at || null,
+    }));
     
     return {
       totalCount,
@@ -75,7 +86,7 @@ export const productService = {
     categoryId: string,
     page: number = 0,
     size: number = 20,
-    sortBy: string = 'latest'
+    sortBy: ProductSortOption = 'latest'
   ): Promise<ProductListResponse> => {
     return await productService.getProducts({
       categoryId,
@@ -92,7 +103,7 @@ export const productService = {
     keyword: string,
     page: number = 0,
     size: number = 20,
-    sortBy: string = 'latest'
+    sortBy: ProductSortOption = 'latest'
   ): Promise<ProductListResponse> => {
     return await productService.getProducts({
       keyword,
@@ -110,7 +121,7 @@ export const productService = {
     maxPrice: number,
     page: number = 0,
     size: number = 20,
-    sortBy: string = 'latest'
+    sortBy: ProductSortOption = 'latest'
   ): Promise<ProductListResponse> => {
     return await productService.getProducts({
       minPrice,
@@ -126,7 +137,7 @@ export const productService = {
    */
   getPopularProducts: async (size: number = 8): Promise<ProductListResponse> => {
     return await productService.getProducts({
-      sortBy: 'orderCount',
+      sortBy: 'popular' as any, // 백엔드에서는 지원하지만 UI에서는 제외
       size,
       page: 0,
     });

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { productService } from '@/lib/services/products';
-import { ProductSummary, ProductListRequest } from '@/types/product';
+import { ProductSummary, ProductListRequest, ProductSortOption } from '@/types/product';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -13,16 +14,17 @@ export default function ProductsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
   
   // 필터 및 페이지네이션 상태
   const [filters, setFilters] = useState<ProductListRequest>({
     page: 0,
     size: 20,
-    sortBy: 'latest'
+    sortBy: 'latest',
+    keyword: searchParams.get('keyword') || undefined
   });
   
-  // 검색 입력 상태 (실시간 검색 방지를 위해 분리)
-  const [searchInput, setSearchInput] = useState('');
+
   
   // 필터 모달 상태
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -51,29 +53,27 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
+  // URL 파라미터 변경 감지
+  useEffect(() => {
+    const keyword = searchParams.get('keyword');
+    if (keyword !== filters.keyword) {
+      const newFilters = {
+        ...filters,
+        keyword: keyword || undefined,
+        page: 0
+      };
+      setFilters(newFilters);
+      fetchProducts(newFilters);
+    }
+  }, [searchParams]);
+
   // 필터 변경 (API 호출 없이 상태만 업데이트)
   const handleFilterChange = (newFilters: Partial<ProductListRequest>) => {
     const updatedFilters = { ...filters, ...newFilters, page: 0 }; // 필터 변경 시 첫 페이지로
     setFilters(updatedFilters);
   };
 
-  // 검색 실행 (모든 필터 조건 적용)
-  const handleSearch = () => {
-    const searchFilters = {
-      ...filters,
-      keyword: searchInput || undefined,
-      page: 0 // 검색 시 첫 페이지로
-    };
-    setFilters(searchFilters);
-    fetchProducts(searchFilters);
-  };
 
-  // 검색 입력 키다운 처리 (엔터키)
-  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
 
   // 페이지 변경
   const handlePageChange = (newPage: number) => {
@@ -100,38 +100,37 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">상품</h1>
-          <p className="text-gray-600">신선한 농산물을 만나보세요</p>
-        </div>
-
-        {/* 검색 및 필터 영역 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-6">
-          {/* 검색 바 (항상 표시) */}
-          <div className="mb-4">
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <Input
-                  type="text"
-                  placeholder="상품명을 입력하세요"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  className="rounded-r-none"
-                />
-              </div>
-              <Button
-                onClick={handleSearch}
-                className="rounded-l-none whitespace-nowrap"
-              >
-                적용
-              </Button>
-            </div>
+        {/* 검색 결과 정보 및 필터 */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="text-gray-600">
+            총 <span className="font-semibold text-gray-900">{(totalCount || 0).toLocaleString()}</span>개의 상품
+            {filters.keyword && (
+              <span> ('{filters.keyword}' 검색 결과)</span>
+            )}
           </div>
-
-          {/* 필터 버튼 */}
-          <div className="flex items-center justify-between mb-4">
+          
+          <div className="flex items-center space-x-4">
+            {/* 활성 필터 표시 (데스크톱에서만) */}
+            {(filters.sortBy !== 'latest' || filters.minPrice || filters.maxPrice) && (
+              <div className="hidden md:flex items-center space-x-2">
+                <span className="text-xs text-gray-500">활성 필터:</span>
+                <div className="flex flex-wrap gap-1">
+                  {filters.sortBy !== 'latest' && (
+                    <span className="px-2 py-1 bg-potato-100 text-potato-800 text-xs rounded-full">
+                      {filters.sortBy === 'priceDesc' ? '가격높은순' :
+                       filters.sortBy === 'priceAsc' ? '가격낮은순' : filters.sortBy}
+                    </span>
+                  )}
+                  {(filters.minPrice || filters.maxPrice) && (
+                    <span className="px-2 py-1 bg-potato-100 text-potato-800 text-xs rounded-full">
+                      가격필터
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* 필터 버튼 */}
             <Button
               variant="outline"
               onClick={() => {
@@ -148,35 +147,6 @@ export default function ProductsPage() {
                 <span className="ml-1 w-2 h-2 bg-potato-500 rounded-full"></span>
               )}
             </Button>
-
-            {/* 활성 필터 표시 (데스크톱에서만) */}
-            {(filters.sortBy !== 'latest' || filters.minPrice || filters.maxPrice) && (
-              <div className="hidden md:flex items-center space-x-2">
-                <span className="text-xs text-gray-500">활성 필터:</span>
-                <div className="flex flex-wrap gap-1">
-                  {filters.sortBy !== 'latest' && (
-                    <span className="px-2 py-1 bg-potato-100 text-potato-800 text-xs rounded-full">
-                      {filters.sortBy === 'orderCount' ? '인기순' : filters.sortBy === 'price' ? '가격순' : filters.sortBy}
-                    </span>
-                  )}
-                  {(filters.minPrice || filters.maxPrice) && (
-                    <span className="px-2 py-1 bg-potato-100 text-potato-800 text-xs rounded-full">
-                      가격필터
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 검색 결과 정보 */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-gray-600">
-            총 <span className="font-semibold text-gray-900">{(totalCount || 0).toLocaleString()}</span>개의 상품
-            {filters.keyword && (
-              <span> ('{filters.keyword}' 검색 결과)</span>
-            )}
           </div>
         </div>
 
@@ -210,37 +180,64 @@ export default function ProductsPage() {
         ) : (
           /* 상품 그리드 */
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+            {/* 모바일: 가로형 카드, 데스크톱: 세로형 카드 그리드 */}
+            <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mb-8">
               {products.map((product) => (
                 <Link key={product.id} href={`/products/${product.id}`}>
                   <Card className="group hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-                    <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
-                      {product.thumbnailUrl ? (
-                        <img
-                          src={product.thumbnailUrl}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                          <span className="text-gray-400 text-4xl">📦</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-potato-600 transition-colors">
-                        {product.name}
-                      </h3>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-lg font-bold text-potato-600">
-                          {formatPrice(product.price)}원
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          주문 {product.orderCount}회
-                        </span>
+                    {/* 모바일: 가로형 레이아웃, 데스크톱: 세로형 레이아웃 */}
+                    <div className="flex sm:block h-64 sm:h-auto">
+                      {/* 상품 이미지 */}
+                      <div className="w-64 h-64 sm:w-full sm:aspect-square bg-gray-100 rounded-l-lg sm:rounded-t-lg sm:rounded-l-lg overflow-hidden flex-shrink-0">
+                        {product.thumbnailUrl ? (
+                          <img
+                            src={product.thumbnailUrl}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                            <span className="text-gray-400 text-3xl sm:text-4xl">📦</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-400">
-                        {formatDate(product.createdAt)}
+                      
+                      {/* 상품 정보 */}
+                      <div className="flex-1 p-4 sm:p-4 flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-2 sm:mb-2 text-sm sm:text-sm line-clamp-2 group-hover:text-potato-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          <div className="flex justify-between items-center mb-2 sm:mb-2">
+                            <span className="text-lg sm:text-lg font-bold text-potato-600">
+                              {formatPrice(product.price)}원
+                            </span>
+                          </div>
+                        </div>
+                        {/* 리뷰 정보 */}
+                        <div className="flex items-center space-x-2 text-sm sm:text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => {
+                                const rating = product.averageRating;
+                                const fillPercentage = rating >= star ? 100 : rating >= star - 1 ? (rating - (star - 1)) * 100 : 0;
+                                
+                                return (
+                                  <div key={star} className="relative">
+                                    <span className="text-base text-gray-300">★</span>
+                                    <span
+                                      className="absolute top-0 left-0 text-base text-yellow-400 overflow-hidden"
+                                      style={{ width: `${fillPercentage}%` }}
+                                    >
+                                      ★
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <span className="ml-1">({product.reviewCount})</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -335,8 +332,8 @@ export default function ProductsPage() {
                     <div className="space-y-2">
                       {[
                         { value: 'latest', label: '최신순' },
-                        { value: 'orderCount', label: '인기순' },
-                        { value: 'price', label: '가격순' }
+                        { value: 'priceDesc', label: '가격 높은순' },
+                        { value: 'priceAsc', label: '가격 낮은순' }
                       ].map(option => (
                         <label key={option.value} className="flex items-center">
                           <input
@@ -344,7 +341,7 @@ export default function ProductsPage() {
                             name="sortBy"
                             value={option.value}
                             checked={tempFilters.sortBy === option.value}
-                            onChange={(e) => setTempFilters({...tempFilters, sortBy: e.target.value})}
+                            onChange={(e) => setTempFilters({...tempFilters, sortBy: e.target.value as ProductSortOption})}
                             className="mr-3 text-potato-600 focus:ring-potato-500"
                           />
                           <span className="text-gray-700">{option.label}</span>
@@ -423,7 +420,6 @@ export default function ProductsPage() {
                     variant="outline"
                     onClick={() => {
                       setTempFilters({
-                        keyword: undefined,
                         minPrice: undefined,
                         maxPrice: undefined,
                         sortBy: 'latest',
@@ -439,7 +435,6 @@ export default function ProductsPage() {
                     onClick={() => {
                       const searchFilters = {
                         ...tempFilters,
-                        keyword: searchInput || undefined,
                         page: 0
                       };
                       setFilters(searchFilters);

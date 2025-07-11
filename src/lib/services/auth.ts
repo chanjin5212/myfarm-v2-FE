@@ -85,8 +85,10 @@ export const authService = {
   /**
    * 현재 사용자 정보 조회
    */
-  getCurrentUser: async (): Promise<MeResponse> => {
-    const response = await apiClient.get<MeResponse>('/users/v1/me');
+  getCurrentUser: async (options?: { skipAuthRedirect?: boolean }): Promise<MeResponse> => {
+    const response = await apiClient.get<MeResponse>('/users/v1/me', {
+      skipAuthRedirect: options?.skipAuthRedirect || false,
+    } as any);
     return response.data;
   },
 

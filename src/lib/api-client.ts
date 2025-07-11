@@ -4,6 +4,7 @@ import { ApiError } from '@/types/api';
 // 타입 확장: _retry 속성 추가
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  skipAuthRedirect?: boolean; // 인증 실패 시 리다이렉트를 건너뛸지 여부
 }
 
 // API 베이스 URL
@@ -42,13 +43,16 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      // 현재 페이지가 로그인 관련 페이지가 아닐 때만 리다이렉트
-      if (typeof window !== 'undefined') {
-        const currentPath = window.location.pathname;
-        const authPages = ['/login', '/register', '/forgot-id', '/forgot-password'];
-        
-        if (!authPages.includes(currentPath)) {
-          window.location.href = '/login';
+      // skipAuthRedirect 옵션이 true인 경우 리다이렉트하지 않음
+      if (!originalRequest.skipAuthRedirect) {
+        // 현재 페이지가 로그인 관련 페이지가 아닐 때만 리다이렉트
+        if (typeof window !== 'undefined') {
+          const currentPath = window.location.pathname;
+          const authPages = ['/login', '/register', '/forgot-id', '/forgot-password'];
+          
+          if (!authPages.includes(currentPath)) {
+            window.location.href = '/login';
+          }
         }
       }
       return Promise.reject(error);
